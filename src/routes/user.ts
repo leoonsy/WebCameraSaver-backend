@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import User from '../models/User';
+import { HydratedDocument } from 'mongoose';
+import User, { UserType } from '../models/User';
 import HTTPError from '../errors/HTTPError';
 import auth from '../middleware/auth';
 
@@ -10,37 +11,66 @@ router.post('/users', async (req, res) => {
   try {
     const { login, password } = req.body;
 
-    if (!login || password?.length < 5) {
-      res.status(401).json({ error: 'Validation error' });
+    if (!login || !password) {
+      res.status(400).send();
     }
-    await User.register(login, password);
-    res.status(201).send();
+    const user = await User.register(login, password);
+    const token = await user.generateAuthToken();
+    res.status(201).json({ token });
   } catch (error) {
     const code = (error as HTTPError).code || 500;
-    res.status(code).json({ error: (error as Error).message });
+    res.status(code).send();
   }
 });
 
 // Login a registered user
-router.post('/users/auth', async (req, res) => {
+router.post('/users/signIn', async (req, res) => {
   try {
     const { login, password } = req.body;
 
     if (!login || !password) {
-      res.status(401).json({ error: 'Validation error' });
+      res.status(400).send();
     }
 
     const user = await User.findByCredentials(login, password);
     const token = await user.generateAuthToken();
-    res.json({ login: user.login, token });
+    res.json({ token });
   } catch (error) {
     const code = (error as HTTPError).code || 500;
-    res.status(code).json({ error: (error as Error).message });
+    res.status(code).send();
+  }
+});
+
+// Sign out
+router.post('/users/signOut', auth, async (req, res) => {
+  try {
+    const user = res.locals.user as HydratedDocument<UserType>;
+    user.tokens = user.tokens.filter((token) => token.token !== res.locals.token);
+    await user.save();
+    res.send();
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+// Change password
+router.put('/users/password', auth, async (req, res) => {
+  try {
+    const user = res.locals.user as HydratedDocument<UserType>;
+    const { password } = req.body;
+    if (!password) {
+      res.status(400).send();
+    }
+
+    user.password = password;
+    await user.save();
+    res.send();
+  } catch (error) {
+    res.status(500).send();
   }
 });
 
 router.get('/users/me', auth, async (req, res) => {
-  // View logged in user profile
   const { user } = res.locals;
   res.json({ login: user.login });
 });

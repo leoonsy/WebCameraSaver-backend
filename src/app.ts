@@ -8,11 +8,13 @@ import './db/db';
 const app = express();
 app.set('PORT', process.env.PORT || 3000);
 
+const API_V1_PATH = '/api/v1';
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(userRouter);
+app.use(API_V1_PATH, userRouter);
 
 // catch 404
 app.use((req, res, next) => {

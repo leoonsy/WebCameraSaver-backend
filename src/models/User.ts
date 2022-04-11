@@ -6,7 +6,7 @@ import 'dotenv/config';
 import jwt from 'jsonwebtoken';
 import HTTPError from '../errors/HTTPError';
 
-type UserType = {
+export type UserType = {
   login: string;
   password: string;
   tokens: { token: string }[];
@@ -67,11 +67,11 @@ userSchema.statics.findByCredentials = async function (
 ) {
   const user = await this.findOne({ login });
   if (!user) {
-    throw new HTTPError('Invalid auth credentials', 401);
+    throw new HTTPError(404);
   }
   const isPasswordMatch = await bcrypt.compare(password, user.password);
   if (!isPasswordMatch) {
-    throw new HTTPError('Invalid auth credentials', 401);
+    throw new HTTPError(404);
   }
   return user;
 };
@@ -79,7 +79,7 @@ userSchema.statics.findByCredentials = async function (
 userSchema.statics.register = async function (this: UserModel, login: string, password: string) {
   const user = await this.findOne({ login });
   if (user) {
-    throw new HTTPError('User already exists', 409);
+    throw new HTTPError(409);
   }
 
   const newUser = new this({ login, password });
