@@ -1,5 +1,5 @@
 import {
-  type HydratedDocument, model, Schema, type Model,
+  type HydratedDocument, model, type Model, Schema,
 } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import 'dotenv/config';
@@ -11,6 +11,10 @@ export type UserType = {
   password: string;
   tokens: { token: string }[];
   generateAuthToken: (this: HydratedDocument<UserType>) => Promise<string>;
+  isEqualPassword: (
+    this: HydratedDocument<UserType>,
+    password: string
+  ) => Promise<string>;
 };
 
 export type TokenPayload = {
@@ -58,6 +62,15 @@ userSchema.methods.generateAuthToken = async function (this: HydratedDocument<Us
   user.tokens = user.tokens.concat({ token });
   await user.save();
   return token;
+};
+
+userSchema.methods.isEqualPassword = async function (
+  this: HydratedDocument<UserType>,
+  password: string,
+) {
+  const user = this;
+
+  return await bcrypt.compare(password, user.password);
 };
 
 userSchema.statics.findByCredentials = async function (
