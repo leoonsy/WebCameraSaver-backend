@@ -57,12 +57,12 @@ router.post('/users/signOut', auth, async (req, res) => {
 router.put('/users/password', auth, async (req, res) => {
   try {
     const user = res.locals.user as HydratedDocument<UserType>;
-    const { oldPassword, newPassword } = req.body;
-    if (!oldPassword || !newPassword) {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
       res.status(400).send();
     }
 
-    if (!(await user.isEqualPassword(oldPassword))) {
+    if (!(await user.isEqualPassword(currentPassword))) {
       res.status(404).send();
     }
 
