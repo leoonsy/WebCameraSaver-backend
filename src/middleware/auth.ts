@@ -16,6 +16,7 @@ const auth: RequestHandler = async (req, res, next) => {
   try {
     const data = jwt.verify(token, process.env.JWT_KEY as string) as TokenPayload;
     const user = await User.findOne({ id: data.id, 'tokens.token': token });
+
     if (!user) {
       sendError();
       return;

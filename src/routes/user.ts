@@ -10,10 +10,17 @@ const router = Router();
 router.post('/users', async (req, res) => {
   try {
     const { login, password } = req.body;
+    const MIN_PASSWORD_LENGTH = 5;
 
-    if (!login || !password) {
+    if (!login
+        || !password
+        || typeof login !== 'string'
+        || typeof password !== 'string'
+        || !/^[a-zA-Z0-9]+$/.test(login)
+        || password.length < MIN_PASSWORD_LENGTH) {
       res.status(400).send();
     }
+
     const user = await User.register(login, password);
     const token = await user.generateAuthToken();
     res.status(201).json({ token });
@@ -38,18 +45,6 @@ router.post('/users/signIn', async (req, res) => {
   } catch (error) {
     const code = (error as HTTPError).code || 500;
     res.status(code).send();
-  }
-});
-
-// Sign out
-router.post('/users/signOut', auth, async (req, res) => {
-  try {
-    const user = res.locals.user as HydratedDocument<UserType>;
-    user.tokens = user.tokens.filter((token) => token.token !== res.locals.token);
-    await user.save();
-    res.send();
-  } catch (error) {
-    res.status(500).send();
   }
 });
 
