@@ -45,6 +45,11 @@ router.get('/video', auth, async (req, res) => {
     const user = res.locals.user as HydratedDocument<UserType>;
     const dir = `${__dirname}/../db/video/${user.login}`;
 
+    if (!fs.existsSync(dir)) {
+      res.json([]);
+      return;
+    }
+
     fs.readdir(dir, (err, files) => {
       if (err) {
         res.status(500).send();
