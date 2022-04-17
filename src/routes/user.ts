@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { HydratedDocument } from 'mongoose';
+import { HttpError } from 'http-errors';
 import User, { UserType } from '../models/User';
-import HTTPError from '../errors/HTTPError';
 import auth from '../middleware/auth';
 
 const router = Router();
@@ -25,7 +25,7 @@ router.post('/users', async (req, res) => {
     const token = await user.generateAuthToken();
     res.status(201).json({ token });
   } catch (error) {
-    const code = (error as HTTPError).code || 500;
+    const code = (error as HttpError).status || 500;
     res.status(code).send();
   }
 });
@@ -43,7 +43,7 @@ router.post('/users/signIn', async (req, res) => {
     const token = await user.generateAuthToken();
     res.json({ token });
   } catch (error) {
-    const code = (error as HTTPError).code || 500;
+    const code = (error as HttpError).status || 500;
     res.status(code).send();
   }
 });

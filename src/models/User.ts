@@ -4,7 +4,7 @@ import {
 import bcrypt from 'bcryptjs';
 import 'dotenv/config';
 import jwt from 'jsonwebtoken';
-import HTTPError from '../errors/HTTPError';
+import createError from 'http-errors';
 
 export type UserType = {
   login: string;
@@ -80,11 +80,11 @@ userSchema.statics.findByCredentials = async function (
 ) {
   const user = await this.findOne({ login });
   if (!user) {
-    throw new HTTPError(404);
+    throw createError(404);
   }
   const isPasswordMatch = await bcrypt.compare(password, user.password);
   if (!isPasswordMatch) {
-    throw new HTTPError(404);
+    throw createError(404);
   }
   return user;
 };
@@ -92,7 +92,7 @@ userSchema.statics.findByCredentials = async function (
 userSchema.statics.register = async function (this: UserModel, login: string, password: string) {
   const user = await this.findOne({ login });
   if (user) {
-    throw new HTTPError(409);
+    throw createError(409);
   }
 
   const newUser = new this({ login, password });
