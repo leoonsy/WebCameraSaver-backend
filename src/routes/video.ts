@@ -88,4 +88,24 @@ router.get('/video/:name', auth, async (req, res) => {
   }
 });
 
+router.delete('/video/:name', auth, async (req, res) => {
+  try {
+    const user = res.locals.user as HydratedDocument<UserType>;
+    const dir = `${__dirname}/../db/video/${user.login}`;
+    const { name } = req.params;
+
+    if (!name || !/^[a-zA-Zа-яА-Яё0-9-]+$/.test(name)) {
+      res.status(400).send();
+      return;
+    }
+
+    fs.unlink(`${dir}/${name}.webm`, () => {
+      res.status(200).send();
+    });
+    res.download(`${dir}/${name}.webm`);
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
 export default router;
