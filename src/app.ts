@@ -1,7 +1,7 @@
 import express from 'express';
-import createError from 'http-errors';
 import path from 'path';
 import logger from 'morgan';
+import fs from 'fs';
 import userRouter from './routes/user';
 import videoRouter from './routes/video';
 import './db/db';
@@ -18,9 +18,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(API_V1_PATH, userRouter);
 app.use(API_V1_PATH, videoRouter);
 
-// catch 404
-app.use((req, res, next) => {
-  next(createError(404));
+app.get('/*', (req, res) => {
+  const dir = path.join(__dirname, '/public/index.html');
+  if (!fs.existsSync(dir)) {
+    res.status(404).send();
+    return;
+  }
+
+  res.sendFile(dir, (err) => {
+    if (err) {
+      res.status(500).send(err);
+    }
+  });
 });
 
 export default app;
