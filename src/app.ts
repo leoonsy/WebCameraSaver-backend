@@ -1,4 +1,5 @@
 import express from 'express';
+import createError from 'http-errors';
 import path from 'path';
 import logger from 'morgan';
 import userRouter from './routes/user';
@@ -17,12 +18,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(API_V1_PATH, userRouter);
 app.use(API_V1_PATH, videoRouter);
 
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, '/public/index.html'), (err) => {
-    if (err) {
-      res.status(500).send(err);
-    }
-  });
+// catch 404
+app.use((req, res, next) => {
+  next(createError(404));
 });
 
 export default app;
